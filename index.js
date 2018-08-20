@@ -6,6 +6,7 @@ const fetch = require("node-fetch");
 const jimp = require("jimp");
 const sql = require("sqlite");
 const { version } = require("./package.json");
+const CommandHandler = require("./src/Commands.js"); // Command Handler
 sql.open("./src/db.sqlite");
 
 class Captcha {
@@ -83,7 +84,7 @@ client.on("message", async (message) => {
             if (message.author.id != client.user.id) message.delete();
             else setTimeout(() => message.delete(), 2500);
             if (message.content === `${config.prefix}verify`) {
-                if (message.member.roles.has(config.userrole)) return message.reply("Already verified or in queue!");
+                if (message.member.roles.has(config.userrole) || (typeof (await sql.get(`SELECT * FROM queries WHERE id="${message.author.id}"`) !== "undefined"))) return message.reply("Already verified or in queue!");
                 let captchaInstance = new Captcha(null, message.author);
                 let captcha = captchaInstance.generate();
                 if (config.captchaType.toLowerCase() == "image") {
@@ -125,17 +126,21 @@ client.on("message", async (message) => {
                         let logChannel = client.channels.get(config.chat) || client.channels.find("name", config.chat);
                         if (logChannel && logChannel.type === "text") logChannel.send(`${message.author.toString()} was successfully verified.`);
                         if (config.logging) sql.run('insert into logs values ("' + message.author.id + '", "' + Date.now() + '")');
-                        sql.run('delete from queries where id="' + message.author.id + '"');
+                        sql.run(`DELETE FROM queries WHERE id="${message.author.id}"`);
                         message.member.addRole(config.userrole).catch(console.log);
-                        delete captchaInstance;
                     }).catch(console.log);
             }
         }
-        require("./src/Commands.js")(message, config, Discord, fs, latestVersion); // Command Handler
+        CommandHandler(message, config, version);
     } catch (e) {
         console.log(e);
     }
 });
-process.on("unhandledRejection", console.log);
+
+client.on("guildMemberRemove", member => {
+    sql.run(`DELETE FROM queries WHERE id="${member.user.id}"`).catch(console.log);
+});
+
+process.on("unhandledRejection", console.error);
 
 client.login(config.token);
