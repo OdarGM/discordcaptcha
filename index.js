@@ -43,7 +43,6 @@ const callback_ = err => {
 };
 
 
-let queue = [];
 fetch("https://raw.githubusercontent.com/y21/discordcaptcha/master/package.json")
 .then(r => r.json())
 .then(r => {
@@ -107,9 +106,11 @@ client.on("message", async (message) => {
                     message.author.send(new Discord.RichEmbed()
                         .setDescription("Paste the code below in the verify channel to get verified.\n\n**Verification Bot made by y21#0909**")
                     );
-                    message.author.send(`\`\`\`${config.prefix}verify ${captchaInstance.captcha}\`\`\``);
+                    message.author.send(`${config.prefix}verify ${captchaInstance.captcha}`, {
+                        code: "js"
+                    });
                 }
-                sql.run('insert into queries values ("' + message.author.id + '")');
+                sql.run(`INSERT INTO queries VALUES ("${message.author.id}")`);
                 message.channel.awaitMessages(msg => msg.content === config.prefix + "verify " + captchaInstance.captcha && msg.author === message.author, {
                         max: 1,
                         errors: ["time"]
@@ -125,7 +126,6 @@ client.on("message", async (message) => {
                         if (logChannel && logChannel.type === "text") logChannel.send(`${message.author.toString()} was successfully verified.`);
                         if (config.logging) sql.run('insert into logs values ("' + message.author.id + '", "' + Date.now() + '")');
                         sql.run('delete from queries where id="' + message.author.id + '"');
-                        queue.pop();
                         message.member.addRole(config.userrole).catch(console.log);
                         delete captchaInstance;
                     }).catch(console.log);
