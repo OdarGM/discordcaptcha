@@ -2,9 +2,10 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const fs = require("fs");
-const snekfetch = require("snekfetch");
+const fetch = require("node-fetch");
 const jimp = require("jimp");
 const sql = require("sqlite");
+const { version } = require("./package.json");
 sql.open("./src/db.sqlite");
 
 class Captcha {
@@ -42,15 +43,14 @@ const callback_ = err => {
 };
 
 
-let queue = [],
-    latestVersion;
-snekfetch.get("https://raw.githubusercontent.com/y21/discordcaptcha/master/src/config.json")
-    .then(r => {
-        if (JSON.parse(r.body).version != config.version) {
-            console.log("### A new version of discordcaptcha is available!  (Latest: " + JSON.parse(r.body).version + ")\n\n");
-        }
-        latestVersion = JSON.parse(r.body).version;
-    }).catch(console.log);
+let queue = [];
+fetch("https://raw.githubusercontent.com/y21/discordcaptcha/master/package.json")
+.then(r => r.json())
+.then(r => {
+    if(r.version != version) {
+        console.warn("\x1b[33m", `You are running an old version of DiscordCaptcha, please update. | Newest version: ${r.version}, running: ${version}`, "\x1b[0m");
+    }
+}).catch(console.error);
 
 client.on("ready", () => {
     try {
