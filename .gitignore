@@ -1,8 +1,8 @@
 # Folders
-
 node_modules/
 cfg_gen/
 
 # Files
 src/config.json
 package-lock.json
+src/db.sqlite
