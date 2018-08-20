@@ -5,3 +5,4 @@ cfg_gen/
 
 # Files
 src/config.json
+package-lock.json
