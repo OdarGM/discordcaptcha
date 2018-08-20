@@ -1,6 +1,10 @@
 let sql = require("sqlite");
 sql.open("./src/db.sqlite");
 
-module.exports = () => {
-    sql.run("delete from logs").catch(e => console.log("[PurgeVerifyLogs] An error occured: " + e));
+class PurgeVerifyLogs {
+    static run() {
+        sql.run("DELETE FROM logs").catch(e => console.log("[PurgeVerifyLogs] An error occured: " + e));
+    }
 };
+
+module.exports = PurgeVerifyLogs;
