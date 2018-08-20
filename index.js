@@ -51,6 +51,7 @@ fetch("https://raw.githubusercontent.com/y21/discordcaptcha/master/package.json"
         console.warn("\x1b[33m", `You are running an old version of DiscordCaptcha, please update. | Newest version: ${r.version}, running: ${version}`, "\x1b[0m");
     }
 }).catch(console.error);
+if(config.captchaType.toLowerCase() !== "image" && config.captchaType.toLowerCase() !== "text") console.error("\x1b[31m", "An invalid captcha type was provided. Please set it to either IMAGE or TEXT", "\x1b[0m");
 
 client.on("ready", () => {
     try {
@@ -86,7 +87,7 @@ client.on("message", async (message) => {
                 if (message.member.roles.has(config.userrole)) return message.reply("Already verified or in queue!");
                 let captchaInstance = new Captcha(null, message.author);
                 let captcha = captchaInstance.generate();
-                if (config.captchaType == "image") {
+                if (config.captchaType.toLowerCase() == "image") {
                     let _image = await jimp.read("https://i.imgur.com/mkoc2Fh.png");
                     let _font = await jimp.loadFont(jimp.FONT_SANS_64_BLACK);
                     let _coordinates = [Math.random() * 400, Math.random() * 400]; // x & y coordinates for text on image
@@ -102,7 +103,7 @@ client.on("message", async (message) => {
                     _image.getBuffer(jimp.MIME_PNG, (err, buff) => {
                         message.author.send(new Discord.Attachment(buff, "captcha.png"));
                     });
-                } else if (config.captchaType == "text") {
+                } else if (config.captchaType.toLowerCase() == "text") {
                     message.author.send(new Discord.RichEmbed()
                         .setDescription("Paste the code below in the verify channel to get verified.\n\n**Verification Bot made by y21#0909**")
                     );
